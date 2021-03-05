@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Person xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Name>Eustachy</Name>
+  <Surname>Zieliński</Surname>
+  <DateOfBirth>2000-02-02T00:00:00</DateOfBirth>
+  <Sex>1</Sex>
+  <Zipcode>321e</Zipcode>
+  <City>dsad</City>
+  <Street>fasdf</Street>
+  <HouseNumber>fasdd</HouseNumber>
+  <ApartmentNumber>fasd</ApartmentNumber>
+</Person>

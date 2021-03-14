@@ -7,6 +7,8 @@ namespace RejestrOsobowy
 {
     class Program
     {
+        public static List<Person> ListOfPerson;
+
         public static int a;
         public static string q;
         public static string w;
@@ -18,7 +20,7 @@ namespace RejestrOsobowy
         public static string i;
         public static DateTime d;
 
-        static string ManWoman (int sex)
+        static string ManWoman(int sex)
         {
             if (sex == 1)
             {
@@ -35,21 +37,47 @@ namespace RejestrOsobowy
             }
         }
 
-        static void Cookies()
+        static void DeserializeFromFile(string a_sFilePath)
         {
-            string path = "listpersoncookies.xml";
+            ListOfPerson?.Clear();
+
             try
-            { 
-            if (File.Exists(path))
             {
-                File.Delete("listperson.xml");
-                System.IO.File.Move("listpersoncookies.xml", "listperson.xml");
-                Console.WriteLine("Pomyślnie usunięto pamięć podręczną");
+                using StreamReader _oReader = new StreamReader(a_sFilePath);
+
+                XmlSerializer _oXmlSerializer = new XmlSerializer(typeof(List<Person>));
+
+                ListOfPerson = _oXmlSerializer.Deserialize(_oReader) as List<Person>;
+
+                if (ListOfPerson?.Count > 0)
+                    Console.WriteLine($"Wczytano {ListOfPerson.Count} osob z pliku {Path.GetFileName(a_sFilePath)}");
             }
-            }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Console.WriteLine(ex.Message);
+            }
+
+            if (ListOfPerson == null)
+                ListOfPerson = new List<Person>();
+        }
+
+        static void SerializeToFile(string a_sFilePath)
+        {
+            if (ListOfPerson.Count > 0)
+            {
+                try
+                {
+                    using StreamWriter _oWriter = new StreamWriter(a_sFilePath);
+
+                    XmlSerializer _oXmlSerializer = new XmlSerializer(typeof(List<Person>));
+
+                    _oXmlSerializer.Serialize(_oWriter, ListOfPerson);
+
+                    Console.WriteLine($"Zapisano {ListOfPerson.Count} osob do pliku {Path.GetFileName(a_sFilePath)}");
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Wystąpił wyjątek podczas zapisu do pliku! {e.Message}");
+                }
             }
         }
 
@@ -59,11 +87,7 @@ namespace RejestrOsobowy
             Console.Clear();
             try
             {
-                XmlSerializer xmlSerializer = new XmlSerializer(typeof(List<Person>));
-                StreamReader sr = new StreamReader("listperson.xml");
-                List<Person> listperson = (List<Person>)xmlSerializer.Deserialize(sr);
-                Console.WriteLine("Rejestr osób - lista");
-                foreach (Person person in listperson)
+                foreach (Person person in ListOfPerson)
                 {
                     Console.WriteLine("\r\nDane osobowe");
                     Console.WriteLine("imie: " + person.Name);
@@ -98,15 +122,12 @@ namespace RejestrOsobowy
             Console.Clear();
             try
             {
-                XmlSerializer xmlSerializer = new XmlSerializer(typeof(List<Person>));
-                StreamReader sr = new StreamReader("listperson.xml");
-                List<Person> listperson = (List<Person>)xmlSerializer.Deserialize(sr);
                 Console.WriteLine("Rejestr osób - lista");
-                Console.WriteLine("Wyszukiwane słowo: "+ word);               
-                foreach (Person person in listperson)                  
+                Console.WriteLine("Wyszukiwane słowo: " + word);
+                foreach (Person person in ListOfPerson)
                 {
                     if (person.Name.ToUpper().IndexOf(word.ToUpper()) == 0 || person.Surname.ToUpper().IndexOf(word.ToUpper()) == 0 || person.Zipcode.ToUpper().IndexOf(word.ToUpper()) == 0 || person.City.ToUpper().IndexOf(word.ToUpper()) == 0 || person.Street.ToUpper().IndexOf(word.ToUpper()) == 0 || person.HouseNumber.ToUpper().IndexOf(word.ToUpper()) == 0 || person.ApartmentNumber.ToUpper().IndexOf(word.ToUpper()) == 0)
-                    { 
+                    {
                         Console.WriteLine("\r\nDane osobowe");
                         Console.WriteLine("imie: " + person.Name);
                         Console.WriteLine("nazwisko: " + person.Surname);
@@ -168,11 +189,8 @@ namespace RejestrOsobowy
 
             try
             {
-                Person person = new Person { Name = curName, Surname = curSurname, DateOfBirth = DateTime.Parse(curDateOfBirth), Sex = curSex, Zipcode = curZipcode, City = curCity, Street = curStreet, HouseNumber = curHouseNumber, ApartmentNumber = curApartmentNumber };
-                XmlSerializer xmlSerializer = new XmlSerializer(typeof(Person));
-                StreamWriter sw = new StreamWriter("lastaddperson.xml");
-                xmlSerializer.Serialize(sw, person);
-                sw.Close();
+                ListOfPerson.Add(new Person { Name = curName, Surname = curSurname, DateOfBirth = DateTime.Parse(curDateOfBirth), Sex = curSex, Zipcode = curZipcode, City = curCity, Street = curStreet, HouseNumber = curHouseNumber, ApartmentNumber = curApartmentNumber });
+
             }
             catch (Exception ex)
             {
@@ -180,36 +198,6 @@ namespace RejestrOsobowy
             }
             Console.ReadLine();
 
-            //SER
-            try
-            {
-                List<Person> listPersons = new List<Person>();
-
-                try
-                {
-                    XmlSerializer xmlSerializerr = new XmlSerializer(typeof(List<Person>));
-                    StreamReader sr = new StreamReader("listperson.xml");
-                    List<Person> listperson = (List<Person>)xmlSerializerr.Deserialize(sr);
-                    foreach (Person person in listperson)
-                    {                      
-                        listPersons.Add(new Person { Name = person.Name, Surname = person.Surname, DateOfBirth = person.DateOfBirth, Sex = person.Sex, Zipcode = person.Zipcode, City = person.City, Street = person.Street, HouseNumber = person.HouseNumber, ApartmentNumber = person.ApartmentNumber });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-                listPersons.Add(new Person { Name = curName, Surname = curSurname, DateOfBirth = DateTime.Parse(curDateOfBirth), Sex = curSex, Zipcode = curZipcode, City = curCity, Street = curStreet, HouseNumber = curHouseNumber, ApartmentNumber = curApartmentNumber });
-                XmlSerializer xmlSerializer = new XmlSerializer(typeof(List<Person>));
-                StreamWriter sw = new StreamWriter("listpersoncookies.xml");
-                xmlSerializer.Serialize(sw, listPersons);
-                sw.Close();
-                Console.WriteLine("Udało się");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
         }
 
 
@@ -217,11 +205,11 @@ namespace RejestrOsobowy
         {
             try
             {
-                XmlSerializer xmlSerializer = new XmlSerializer(typeof(List<Person>));
-                StreamReader sr = new StreamReader("listperson.xml");
-                List<Person> listperson = (List<Person>)xmlSerializer.Deserialize(sr);
                 Console.WriteLine("Rejestr osób - lista");
-                foreach (Person person in listperson)
+
+                int _iIndex = 0;
+
+                foreach (Person person in ListOfPerson)
                 {
                     if (person.Name.ToUpper() == word.ToUpper() && person.Surname.ToUpper() == word2.ToUpper())
                     {
@@ -234,91 +222,45 @@ namespace RejestrOsobowy
                         t = person.Street;
                         y = person.HouseNumber;
                         u = person.ApartmentNumber;
+
+                        Console.Clear();
+                        Console.WriteLine("Aktualne imie: " + q);
+                        Console.WriteLine("Podaj nowe imię: ");
+                        string curName = Console.ReadLine();
+                        Console.WriteLine("Aktualne nazwisko: " + w);
+                        Console.WriteLine("Podaj nowe naziwsko: ");
+                        string curSurname = Console.ReadLine();
+                        Console.WriteLine("Aktualna data urodzenia: " + d);
+                        Console.WriteLine("Podaj nową datę urodzenia (YYYY-MM-DD): ");
+                        string curDateOfBirth = Console.ReadLine();
+                        Console.WriteLine("Aktualna płeć: " + ManWoman(a));
+                        Console.WriteLine("Podaj nową płeć (1 - Mężczyzna, 2 - Kobieta: ");
+                        string stringcurSex = Console.ReadLine();
+                        int curSex = int.Parse(stringcurSex);
+                        Console.WriteLine("Aktualny kod pocztowy: " + e);
+                        Console.WriteLine("Podaj nowy kod pocztowy: ");
+                        string curZipcode = Console.ReadLine();
+                        Console.WriteLine("Aktualne miasto: " + r);
+                        Console.WriteLine("Podaj nowy miasto: ");
+                        string curCity = Console.ReadLine();
+                        Console.WriteLine("Aktualną ulicę: " + t);
+                        Console.WriteLine("Podaj nowy ulicę: ");
+                        string curStreet = Console.ReadLine();
+                        Console.WriteLine("Aktualny numer domu: " + y);
+                        Console.WriteLine("Podaj nowy numer domu: ");
+                        string curHouseNumber = Console.ReadLine();
+                        Console.WriteLine("Aktualny numer mieszkania: " + u);
+                        Console.WriteLine("Podaj nowy numer mieszkania: ");
+                        string curApartmentNumber = Console.ReadLine();
+
+                        ListOfPerson[_iIndex] = new Person { Name = q, Surname = w, DateOfBirth = DateTime.Parse(i), Sex = a, Zipcode = e, City = r, Street = t, HouseNumber = y, ApartmentNumber = u };
+
+                        break;
                     }
+
+                    _iIndex++;
                 }
 
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-            // DESERIUALIZACJA ZACZYT, DESERIALIZACJA I SERIALIZACJA Z DODATKIEM
-            Console.Clear();
-            Console.WriteLine("Aktualne imie: " + q);
-            Console.WriteLine("Podaj nowe imię: ");
-            string curName = Console.ReadLine();
-            Console.WriteLine("Aktualne nazwisko: " + w);
-            Console.WriteLine("Podaj nowe naziwsko: ");
-            string curSurname = Console.ReadLine();
-            Console.WriteLine("Aktualna data urodzenia: " + d);
-            Console.WriteLine("Podaj nową datę urodzenia (YYYY-MM-DD): ");
-            string curDateOfBirth = Console.ReadLine();
-            Console.WriteLine("Aktualna płeć: " + ManWoman(a));
-            Console.WriteLine("Podaj nową płeć (1 - Mężczyzna, 2 - Kobieta: ");
-            string stringcurSex = Console.ReadLine();
-            int curSex = int.Parse(stringcurSex);
-            Console.WriteLine("Aktualny kod pocztowy: " + e);
-            Console.WriteLine("Podaj nowy kod pocztowy: ");
-            string curZipcode = Console.ReadLine();
-            Console.WriteLine("Aktualne miasto: " + r);
-            Console.WriteLine("Podaj nowy miasto: ");
-            string curCity = Console.ReadLine();
-            Console.WriteLine("Aktualną ulicę: " + t);
-            Console.WriteLine("Podaj nowy ulicę: ");
-            string curStreet = Console.ReadLine();
-            Console.WriteLine("Aktualny numer domu: " + y);
-            Console.WriteLine("Podaj nowy numer domu: ");
-            string curHouseNumber = Console.ReadLine();
-            Console.WriteLine("Aktualny numer mieszkania: " + u);
-            Console.WriteLine("Podaj nowy numer mieszkania: ");
-            string curApartmentNumber = Console.ReadLine();
-
-
-            
-            try
-            {
-                Person person = new Person { Name = q, Surname = w, DateOfBirth = DateTime.Parse(i), Sex = a, Zipcode = e, City = r, Street = t, HouseNumber = y, ApartmentNumber = u };
-                XmlSerializer xmlSerializer = new XmlSerializer(typeof(Person));
-                StreamWriter sw = new StreamWriter("lastmodifyperson.xml");
-                xmlSerializer.Serialize(sw, person);
-                sw.Close();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            Console.ReadLine();
-
-            //SER
-            try
-            {
-                List<Person> listPersons = new List<Person>();
-
-                try
-                {
-                    XmlSerializer xmlSerializerr = new XmlSerializer(typeof(List<Person>));
-                    StreamReader sr = new StreamReader("listperson.xml");
-                    List<Person> listperson = (List<Person>)xmlSerializerr.Deserialize(sr);
-                    foreach (Person person in listperson)
-                    {
-                        if (person.Name.ToUpper() != word.ToUpper() || person.Surname.ToUpper() != word2.ToUpper())
-                        {
-                            listPersons.Add(new Person { Name = person.Name, Surname = person.Surname, DateOfBirth = person.DateOfBirth, Sex = person.Sex, Zipcode = person.Zipcode, City = person.City, Street = person.Street, HouseNumber = person.HouseNumber, ApartmentNumber = person.ApartmentNumber });
-                        }
-                    }
-                        
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-                listPersons.Add(new Person { Name = curName, Surname = curSurname, DateOfBirth = DateTime.Parse(curDateOfBirth), Sex = curSex, Zipcode = curZipcode, City = curCity, Street = curStreet, HouseNumber = curHouseNumber, ApartmentNumber = curApartmentNumber });
-                XmlSerializer xmlSerializer = new XmlSerializer(typeof(List<Person>));
-                StreamWriter sw = new StreamWriter("listpersoncookies.xml");
-                xmlSerializer.Serialize(sw, listPersons);
-                sw.Close();
-                Console.WriteLine("Udało się");
             }
             catch (Exception ex)
             {
@@ -331,86 +273,35 @@ namespace RejestrOsobowy
         {
             try
             {
-                XmlSerializer xmlSerializer = new XmlSerializer(typeof(List<Person>));
-                StreamReader sr = new StreamReader("listperson.xml");
-                List<Person> listperson = (List<Person>)xmlSerializer.Deserialize(sr);
+                int _iIndex = -1;
+
                 Console.WriteLine("Rejestr osób - lista");
-                foreach (Person person in listperson)
+                foreach (Person person in ListOfPerson)
                 {
+                    _iIndex++;
+
                     if (person.Name.ToUpper() == word.ToUpper() && person.Surname.ToUpper() == word2.ToUpper())
                     {
-                        q = person.Name;
-                        w = person.Surname;
-                        d = person.DateOfBirth;
-                        a = person.Sex;
-                        e = person.Zipcode;
-                        r = person.City;
-                        t = person.Street;
-                        y = person.HouseNumber;
-                        u = person.ApartmentNumber;
+                        break;
                     }
                 }
 
+                if (_iIndex > -1)
+                    ListOfPerson.RemoveAt(_iIndex);
+
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
             }
 
-            try
-            {
-                Person person = new Person { Name = q, Surname = w, DateOfBirth = DateTime.Parse(i), Sex = a, Zipcode = e, City = r, Street = t, HouseNumber = y, ApartmentNumber = u };
-                XmlSerializer xmlSerializer = new XmlSerializer(typeof(Person));
-                StreamWriter sw = new StreamWriter("lastdeleteperson.xml");
-                xmlSerializer.Serialize(sw, person);
-                sw.Close();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-            Console.ReadLine();
 
-            //SER
-            try
-            {
-                List<Person> listPersons = new List<Person>();
-
-                try
-                {
-                    XmlSerializer xmlSerializerr = new XmlSerializer(typeof(List<Person>));
-                    StreamReader sr = new StreamReader("listperson.xml");
-                    List<Person> listperson = (List<Person>)xmlSerializerr.Deserialize(sr);
-                    foreach (Person person in listperson)
-                    {
-                        if (person.Name.ToUpper() != word.ToUpper() || person.Surname.ToUpper() != word2.ToUpper())
-                        {
-                            listPersons.Add(new Person { Name = person.Name, Surname = person.Surname, DateOfBirth = person.DateOfBirth, Sex = person.Sex, Zipcode = person.Zipcode, City = person.City, Street = person.Street, HouseNumber = person.HouseNumber, ApartmentNumber = person.ApartmentNumber });
-                        }
-                    }
-
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex.Message);
-                }
-                XmlSerializer xmlSerializer = new XmlSerializer(typeof(List<Person>));
-                StreamWriter sw = new StreamWriter("listpersoncookies.xml");
-                xmlSerializer.Serialize(sw, listPersons);
-                sw.Close();
-                Console.WriteLine("Udało się");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
         }
 
 
 
         private static bool MainMenu()
         {
-            Cookies();
             Console.Clear();
             Console.WriteLine("Rejestr osobowy ver. 1.0\r\n");
             Console.WriteLine("Wybierz z pośród poniższych opcji:");
@@ -429,7 +320,7 @@ namespace RejestrOsobowy
                     return true;
                 case "2":
                     Console.WriteLine("\r\n");
-                    Console.WriteLine("Słowo które chcesz wyszukać:");                  
+                    Console.WriteLine("Słowo które chcesz wyszukać:");
                     string word = Console.ReadLine();
                     SearchAll(word);
                     return true;
@@ -464,12 +355,19 @@ namespace RejestrOsobowy
 
         static void Main(string[] args)
         {
-            // Menu 
-            bool showMenu = true;
-            while (showMenu)
+            DeserializeFromFile("listperson.xml");
+
+            try
             {
-                showMenu = MainMenu();
+                while (MainMenu())
+                {
+                }
             }
+            catch (Exception)
+            {
+            }
+
+            SerializeToFile("listperson.xml");
         }
     }
 }
